@@ -1,0 +1,1891 @@
+This Web Demo page is still bring worked on, please come back later.
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roxzned Setup Designer — Web Demo</title>
+  <style>
+    :root{
+      --bg0:#0f0f10;
+      --bg1:#141416;
+      --bg2:#1b1c1f;
+      --bg3:#23252a;
+      --bg4:#2a2d33;
+      --line:#2f3239;
+      --line2:#3a3f48;
+      --txt:#e7e9ee;
+      --muted:#aab0ba;
+      --accent:#4cc3ff;
+      --accent2:#7bd7ff;
+      --ok:#45d483;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --shadow: 0 18px 55px rgba(0,0,0,.55);
+      --radius: 10px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --ui: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --grid: rgba(255,255,255,.06);
+      --grid2: rgba(255,255,255,.025);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 20% 0%, #1a1b1f 0%, #0f0f10 50%) fixed;
+      color:var(--txt);
+      font-family:var(--ui);
+      overflow:hidden;
+    }
+
+    /* Faux app window */
+    .app{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* Top menu bar */
+    .menubar{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      padding:6px 10px;
+      background: linear-gradient(#1a1b1f, #141416);
+      border-bottom:1px solid var(--line);
+      user-select:none;
+      font-size:13px;
+    }
+    .menu{
+      position:relative;
+      padding:4px 8px;
+      border-radius:6px;
+      color:var(--txt);
+      cursor:default;
+    }
+    .menu:hover{background:rgba(255,255,255,.06)}
+    .menu.open{background:rgba(255,255,255,.08)}
+    .dropdown{
+      position:absolute;
+      top:28px;
+      left:0;
+      width:230px;
+      background: #141518;
+      border:1px solid var(--line2);
+      box-shadow: var(--shadow);
+      border-radius:10px;
+      padding:6px;
+      display:none;
+      z-index:999;
+    }
+    .menu.open .dropdown{display:block}
+    .item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:7px 10px;
+      border-radius:8px;
+      color:var(--txt);
+      font-size:13px;
+      cursor:pointer;
+    }
+    .item:hover{background:rgba(255,255,255,.08)}
+    .item.disabled{
+      color:#6f7682;
+      cursor:not-allowed;
+    }
+    .item.disabled:hover{background:transparent}
+    .sep{height:1px;background:var(--line); margin:6px 8px}
+    .kbd{color:var(--muted); font-family:var(--mono); font-size:12px}
+
+    /* Toolbar row (icons + Build...) */
+    .toolbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:6px 10px;
+      background: #121316;
+      border-bottom:1px solid var(--line);
+      user-select:none;
+      font-size:13px;
+    }
+    .ticons{display:flex; gap:8px; align-items:center}
+    .ico{
+      width:18px;height:18px;
+      border-radius:4px;
+      background: linear-gradient(#2b2f37,#1a1c21);
+      border:1px solid var(--line2);
+      position:relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .ico::after{
+      content:"";
+      position:absolute; inset:4px;
+      border-radius:2px;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .buildbtn{
+      padding:5px 10px;
+      border-radius:8px;
+      border:1px solid var(--line2);
+      background: linear-gradient(#1f2228,#16181d);
+      cursor:pointer;
+      color:var(--txt);
+    }
+    .buildbtn:hover{border-color:#4c5360}
+    .spacer{flex:1}
+    .titlebar{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Main split: left editor + right code */
+    .main{
+      flex:1;
+      display:grid;
+      grid-template-columns: 1fr 460px;
+      min-height:0;
+    }
+
+    /* Left side (designer) */
+    .left{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      border-right:1px solid var(--line);
+      background: #0f1012;
+    }
+
+    .sectionTitle{
+      font-size:13px;
+      color:var(--txt);
+      margin:10px 10px 6px;
+      opacity:.95;
+    }
+
+    /* Project settings */
+    .proj{
+      padding:0 10px 10px;
+    }
+    .grid2col{
+      display:grid;
+      grid-template-columns: 140px 1fr auto;
+      gap:6px 10px;
+      align-items:center;
+    }
+    label{
+      color:var(--muted);
+      font-size:12px;
+    }
+    input[type="text"], textarea, select, input[type="number"]{
+      width:100%;
+      background: #16181d;
+      border:1px solid var(--line2);
+      color:var(--txt);
+      border-radius:6px;
+      padding:6px 8px;
+      outline:none;
+      font-size:13px;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus, input[type="number"]:focus{
+      border-color:#586070;
+      box-shadow: 0 0 0 2px rgba(76,195,255,.15);
+    }
+    textarea{
+      height:88px;
+      resize:vertical;
+      font-family:var(--ui);
+      line-height:1.3;
+    }
+    .btn{
+      padding:6px 10px;
+      border-radius:7px;
+      border:1px solid var(--line2);
+      background: linear-gradient(#20232a,#15171c);
+      color:var(--txt);
+      cursor:pointer;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .btn:hover{border-color:#525a69}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{
+      background: linear-gradient(#1a1d22,#13151a);
+      color:var(--muted);
+    }
+
+    /* Middle row: pages + canvas + properties */
+    .mid{
+      flex:1;
+      min-height:0;
+      display:grid;
+      grid-template-columns: 290px 1fr 360px;
+      gap:10px;
+      padding:0 10px 10px;
+    }
+
+    /* Pages panel */
+    .panel{
+      background: #121317;
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .panelHeader{
+      padding:8px 10px;
+      background: linear-gradient(#17181c,#121317);
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      color:var(--txt);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .panelBody{
+      padding:8px;
+      min-height:0;
+      overflow:auto;
+    }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .row{
+      padding:7px 8px;
+      border-radius:8px;
+      border:1px solid transparent;
+      cursor:pointer;
+      color:var(--txt);
+      font-size:13px;
+      background: rgba(255,255,255,.02);
+    }
+    .row:hover{background: rgba(255,255,255,.05)}
+    .row.active{
+      background: rgba(76,195,255,.12);
+      border-color: rgba(76,195,255,.25);
+    }
+    .panelFooter{
+      padding:8px;
+      border-top:1px solid var(--line);
+      background:#101116;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .footerBtns{
+      display:flex;
+      gap:8px;
+      width:100%;
+      justify-content:flex-start;
+    }
+    .small{
+      padding:6px 10px;
+      font-size:12px;
+      border-radius:7px;
+    }
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+      padding:8px 10px 10px;
+      border-top:1px solid var(--line);
+      background:#0f1014;
+    }
+    .toggle input{accent-color:var(--accent)}
+    .designerOptions{
+      padding:10px;
+      border-top:1px solid var(--line);
+      background:#0f1014;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Canvas panel (center) */
+    .canvasWrap{
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .pageControls{
+      display:grid;
+      grid-template-columns: 110px 1fr 60px 120px;
+      gap:6px 10px;
+      align-items:center;
+    }
+    .pageControls .twoBtn{
+      display:flex; gap:8px;
+      justify-content:flex-end;
+    }
+    .canvas{
+      flex:1;
+      min-height:0;
+      border-radius: var(--radius);
+      border:1px solid var(--line);
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(var(--grid2) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid2) 1px, transparent 1px),
+        #0f1012;
+      background-size: 32px 32px, 32px 32px, 8px 8px, 8px 8px, auto;
+      background-position: 0 0, 0 0, 0 0, 0 0;
+      position:relative;
+      overflow:hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .canvas.noGrid{
+      background: #0f1012;
+    }
+    .pageBgImage{
+      position:absolute;
+      inset:0;
+      background-size:cover;
+      background-position:center;
+      opacity:.25;
+      pointer-events:none;
+      filter:saturate(.85) contrast(1.05);
+    }
+
+    /* Widgets */
+    .w{
+      position:absolute;
+      border:1px solid transparent;
+      border-radius:6px;
+      padding:6px 8px;
+      color:var(--txt);
+      font-size:13px;
+      user-select:none;
+      cursor:move;
+      min-width:24px;
+      min-height:18px;
+    }
+    .w.selected{
+      border-color: rgba(76,195,255,.55);
+      box-shadow: 0 0 0 2px rgba(76,195,255,.18);
+      background: rgba(76,195,255,.04);
+    }
+    .w .resize{
+      position:absolute;
+      width:10px; height:10px;
+      right:-4px; bottom:-4px;
+      border-radius:3px;
+      background: rgba(76,195,255,.9);
+      box-shadow: 0 0 0 2px rgba(0,0,0,.5);
+      cursor:nwse-resize;
+      display:none;
+    }
+    .w.selected .resize{display:block}
+    .w.label{background:transparent}
+    .w.button{
+      padding:0;
+      border:1px solid var(--line2);
+      background: linear-gradient(#21242a,#16181d);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+    }
+    .w.button.disabled{opacity:.45; cursor:not-allowed}
+    .w.checkbox{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      background:transparent;
+    }
+    .w.checkbox input{accent-color:var(--accent)}
+    .w.image{
+      border:1px solid var(--line2);
+      background: linear-gradient(#1f2228,#121317);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:12px;
+      cursor:move;
+    }
+    .w.editbox{
+      border:1px solid var(--line2);
+      background: #15171c;
+      padding:4px 6px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:move;
+    }
+    .w.editbox input{
+      width:100%;
+      background:transparent;
+      border:none;
+      color:var(--txt);
+      outline:none;
+      font-size:13px;
+    }
+
+    /* Properties panel */
+    .propGrid{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap:6px 10px;
+      align-items:center;
+      padding:8px;
+    }
+    .propGrid .full{grid-column:1/-1}
+    .propGrid small{color:var(--muted)}
+    .inline2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:8px;
+    }
+    .checkRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid var(--line2);
+      color:var(--muted);
+      background:#14161a;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.25;
+      margin-top:6px;
+    }
+
+    /* Right code panel */
+    .right{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      background:#0f1012;
+    }
+    .codePanel{
+      margin:10px 10px 10px 10px;
+      border-radius: var(--radius);
+      border:1px solid var(--line);
+      background: #0f1012;
+      overflow:hidden;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .codeHeader{
+      padding:8px 10px;
+      background: linear-gradient(#17181c,#121317);
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:13px;
+      color:var(--txt);
+    }
+    .codeBody{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      display:grid;
+      grid-template-columns: 44px 1fr;
+      font-family: var(--mono);
+      font-size:12.5px;
+      line-height:1.5;
+    }
+    .ln{
+      background:#0b0c0f;
+      border-right:1px solid var(--line);
+      color:#6f7682;
+      padding:10px 0;
+      text-align:right;
+      user-select:none;
+    }
+    .ln div{padding:0 10px}
+    pre{
+      margin:0;
+      padding:10px 12px;
+      white-space:pre;
+      overflow:visible;
+    }
+
+    /* Context menu (canvas) */
+    .ctx{
+      position:fixed;
+      min-width:220px;
+      background:#141518;
+      border:1px solid var(--line2);
+      border-radius:10px;
+      box-shadow: var(--shadow);
+      padding:6px;
+      z-index:2000;
+      display:none;
+    }
+    .ctx .item{padding:7px 10px}
+    .ctxTitle{
+      padding:7px 10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Modals */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:3000;
+    }
+    .modal{
+      width:min(640px, calc(100vw - 24px));
+      background:#141518;
+      border:1px solid var(--line2);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHeader{
+      padding:10px 12px;
+      background: linear-gradient(#1c1f26,#141518);
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:13px;
+    }
+    .modalBody{padding:12px}
+    .modalFooter{
+      padding:10px 12px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      background:#121317;
+    }
+    .progress{
+      height:10px;
+      background:#0f1012;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .bar{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .mono{font-family:var(--mono)}
+    .muted{color:var(--muted)}
+    .danger{color:var(--bad)}
+    .ok{color:var(--ok)}
+    .toast{
+      position:fixed;
+      bottom:14px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#141518;
+      border:1px solid var(--line2);
+      border-radius:12px;
+      padding:10px 12px;
+      box-shadow: var(--shadow);
+      display:none;
+      z-index:4000;
+      font-size:13px;
+      color:var(--txt);
+    }
+
+    /* Responsive fallback */
+    @media (max-width: 1200px){
+      body{overflow:auto}
+      .main{grid-template-columns:1fr}
+      .right{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Menu bar -->
+    <div class="menubar" id="menubar">
+      <div class="menu" data-menu="file">File
+        <div class="dropdown">
+          <div class="item" id="mNew">New Project <span class="kbd">Ctrl+N</span></div>
+          <div class="item" id="mOpen">Import Project… <span class="kbd">Ctrl+O</span></div>
+          <div class="item" id="mSave">Save (Local) <span class="kbd">Ctrl+S</span></div>
+          <div class="sep"></div>
+          <div class="item" id="mExportJson">Export project.json</div>
+          <div class="item" id="mExportPy">Export installer.py</div>
+          <div class="sep"></div>
+          <div class="item" id="mReset">Reset Demo State</div>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="edit">Edit
+        <div class="dropdown">
+          <div class="item" id="mUndo">Undo <span class="kbd">Ctrl+Z</span></div>
+          <div class="item" id="mRedo">Redo <span class="kbd">Ctrl+Y</span></div>
+          <div class="sep"></div>
+          <div class="item" id="mDeleteSel">Delete Selected <span class="kbd">Del</span></div>
+          <div class="item" id="mDuplicateSel">Duplicate Selected <span class="kbd">Ctrl+D</span></div>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="view">View
+        <div class="dropdown">
+          <div class="item" id="mToggleGrid">Toggle Grid <span class="kbd">G</span></div>
+          <div class="item" id="mCodeMode">Switch Code View <span class="kbd">C</span></div>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="tools">Tools
+        <div class="dropdown">
+          <div class="item" id="mBuild">Build (PyInstaller)…</div>
+          <div class="item" id="mPreview">Run Preview Wizard…</div>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="help">Help
+        <div class="dropdown">
+          <div class="item" id="mHelp">What can this do?</div>
+          <div class="item" id="mShortcuts">Keyboard Shortcuts</div>
+          <div class="sep"></div>
+          <div class="item" id="mAbout">About this Web Demo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar row -->
+    <div class="toolbar">
+      <div class="ticons" title="Toolbar (mock)">
+        <div class="ico"></div>
+        <div class="ico"></div>
+        <div class="ico"></div>
+      </div>
+      <button class="buildbtn" id="buildTop">Build (PyInstaller)…</button>
+      <div class="spacer"></div>
+      <div class="titlebar">Setup Wizard Maker</div>
+    </div>
+
+    <!-- Main area -->
+    <div class="main">
+      <!-- Left designer -->
+      <div class="left">
+        <div class="sectionTitle">Project Settings</div>
+        <div class="proj">
+          <div class="grid2col">
+            <label>App name:</label>
+            <input type="text" id="appName" />
+            <div></div>
+
+            <label>Version:</label>
+            <input type="text" id="appVersion" />
+            <div></div>
+
+            <label>Publisher:</label>
+            <input type="text" id="publisher" />
+            <div></div>
+
+            <label>Default install dir:</label>
+            <input type="text" id="installDir" />
+            <div></div>
+
+            <label>Source folder:</label>
+            <input type="text" id="sourceFolder" />
+            <button class="btn small" id="browseSource">Browse…</button>
+
+            <label>Payload zip:</label>
+            <input type="text" id="payloadZip" />
+            <button class="btn small" id="browsePayload">Browse…</button>
+          </div>
+
+          <div class="sectionTitle" style="margin:10px 0 6px 0;">License Text (used on License page role)</div>
+          <textarea id="licenseText"></textarea>
+        </div>
+
+        <div class="mid">
+          <!-- Pages panel -->
+          <div class="panel">
+            <div class="panelHeader">
+              <span class="mono">Pages</span>
+              <span class="pill" id="pageCount">0</span>
+            </div>
+            <div class="panelBody">
+              <div class="list" id="pagesList"></div>
+            </div>
+            <div class="panelFooter">
+              <div class="footerBtns">
+                <button class="btn small" id="pgAdd">Add</button>
+                <button class="btn small" id="pgDup">Duplicate</button>
+                <button class="btn small" id="pgDel">Delete</button>
+                <button class="btn small" id="pgUp">Up</button>
+                <button class="btn small" id="pgDown">Down</button>
+              </div>
+            </div>
+            <div class="designerOptions">
+              <div class="mono" style="margin-bottom:6px;">Designer Options</div>
+              <div class="checkRow">
+                <input type="checkbox" id="showGrid" />
+                <label for="showGrid" style="margin:0;color:var(--txt)">Show grid</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas + page controls -->
+          <div class="canvasWrap">
+            <div class="pageControls">
+              <label>Page title:</label>
+              <input type="text" id="pageTitle" />
+              <label style="text-align:right;">Role:</label>
+              <select id="pageRole">
+                <option value="welcome">welcome</option>
+                <option value="license">license</option>
+                <option value="install_path">install_path</option>
+                <option value="installing">installing</option>
+                <option value="finish">finish</option>
+                <option value="custom">custom</option>
+              </select>
+
+              <label>Page Background:</label>
+              <div></div>
+              <div></div>
+              <div></div>
+
+              <label>Background color:</label>
+              <input type="text" id="bgColor" placeholder="#151515" />
+              <div></div>
+              <div class="twoBtn">
+                <button class="btn small" id="pickBg">Pick…</button>
+              </div>
+
+              <label>Background image:</label>
+              <input type="text" id="bgImage" placeholder="" />
+              <div></div>
+              <div class="twoBtn">
+                <button class="btn small" id="browseBg">Browse…</button>
+              </div>
+            </div>
+
+            <div class="canvas" id="canvas">
+              <div class="pageBgImage" id="pageBgImage"></div>
+            </div>
+
+            <div class="hint">
+              Tip: Right-click the canvas to add widgets. Drag to move. Grab the corner to resize.
+            </div>
+          </div>
+
+          <!-- Properties -->
+          <div class="panel">
+            <div class="panelHeader">
+              <span class="mono">Selected Widget Properties</span>
+              <span class="pill" id="selType">-</span>
+            </div>
+            <div class="panelBody" style="padding:0;">
+              <div class="propGrid">
+                <label>Type:</label>
+                <input type="text" id="pType" disabled />
+
+                <label>Name:</label>
+                <input type="text" id="pName" />
+
+                <label>Text:</label>
+                <input type="text" id="pText" />
+
+                <label>X:</label>
+                <input type="number" id="pX" />
+
+                <label>Y:</label>
+                <input type="number" id="pY" />
+
+                <label>W:</label>
+                <input type="number" id="pW" />
+
+                <label>H:</label>
+                <input type="number" id="pH" />
+
+                <label>Font size:</label>
+                <input type="number" id="pFont" min="6" max="72" />
+
+                <div class="checkRow full">
+                  <input type="checkbox" id="pBold" />
+                  <label for="pBold" style="margin:0;color:var(--txt)">Bold</label>
+                </div>
+
+                <label>Text color (fg):</label>
+                <div class="inline2">
+                  <input type="text" id="pFg" placeholder="#ffffff" />
+                  <button class="btn small" id="pickFg">Pick…</button>
+                </div>
+
+                <label>Background (bg):</label>
+                <div class="inline2">
+                  <input type="text" id="pBg" placeholder="(none)" />
+                  <button class="btn small" id="pickBg2">Pick…</button>
+                </div>
+
+                <div class="checkRow full" id="rowChecked" style="display:none;">
+                  <input type="checkbox" id="pChecked" />
+                  <label for="pChecked" style="margin:0;color:var(--txt)">Checked (CheckBox only)</label>
+                </div>
+
+                <div class="full" id="rowAction" style="display:none;">
+                  <div class="inline2">
+                    <select id="pAction">
+                      <option value="none">Button action: none</option>
+                      <option value="next">Next page</option>
+                      <option value="back">Back page</option>
+                      <option value="close">Close installer</option>
+                      <option value="open_url">Open URL</option>
+                      <option value="set_path">Open Set Path</option>
+                    </select>
+                    <input type="text" id="pUrl" placeholder="URL (for Open URL)" />
+                  </div>
+                </div>
+
+                <div class="full" id="rowToggle" style="display:none;">
+                  <div class="inline2">
+                    <select id="pTarget">
+                      <option value="">CheckBox toggles: (select target)</option>
+                    </select>
+                    <div class="muted" style="font-size:12px;align-self:center;">
+                      Enables/disables the target widget.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="full muted" style="padding-top:6px;font-size:12px;line-height:1.25;">
+                  Click a widget to select it. Press <span class="pill">Del</span> to delete, <span class="pill">Ctrl+D</span> to duplicate.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right code -->
+      <div class="right">
+        <div class="codePanel">
+          <div class="codeHeader">
+            <span class="mono" id="codeTitle">Auto-generated Code (Python)</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn small secondary" id="toggleCode">Switch View</button>
+              <button class="btn small" id="copyCode">Copy</button>
+            </div>
+          </div>
+          <div class="codeBody">
+            <div class="ln" id="ln"></div>
+            <pre id="code"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas context menu -->
+  <div class="ctx" id="ctx">
+    <div class="ctxTitle mono">Add widget</div>
+    <div class="item" data-add="Label">Label (Text)</div>
+    <div class="item" data-add="Button">Button</div>
+    <div class="item" data-add="CheckBox">Check Box</div>
+    <div class="item" data-add="Image">Image</div>
+    <div class="item" data-add="EditBox">Edit Box</div>
+    <div class="sep"></div>
+    <div class="item" data-add="InstallPathPack">Install Path Pack (EditBox + Set Path)</div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modalOverlay" id="modal">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="mono" id="modalTitle">Build (PyInstaller)…</div>
+        <button class="btn small secondary" id="modalClose">Close</button>
+      </div>
+      <div class="modalBody" id="modalBody"></div>
+      <div class="modalFooter" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <input type="file" id="filePick" style="display:none" />
+  <input type="color" id="colorPick" style="display:none" />
+
+  <script>
+    // Roxzned Setup Designer — Web Demo (single-file)
+    // Purpose: interactive mock of the desktop UI shown in the screenshot.
+    // Stores state in localStorage.
+
+    const LS_KEY = "roxzned_setup_designer_demo_state_v1";
+    const LS_UNDO = "roxzned_setup_designer_demo_undo_v1";
+
+    const $ = (id)=>document.getElementById(id);
+
+    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+    const uid = ()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
+
+    function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    const DEFAULT_STATE = {
+      codeMode: "python", // python | json
+      showGrid: true,
+      selected: { pageId: null, itemId: null },
+      project: {
+        app_name: "Vidplayer",
+        version: "2.0.9.1",
+        publisher: "sonic Fan Tech",
+        default_install_dir: "%LOCALAPPDATA%\\VidPlayer",
+        source_folder: "E:/Projects/Project USB/VS Code/Python/Roxzned Setup installer Designer/Source/data",
+        payload_zip: "E:/Projects/Project USB/VS Code/Python/Roxzned Setup installer Designer/Source/payload.zip",
+        license_text:
+`VidPlayer License Agreement
+Copyright (c) 2023-2026 sonic Fan Tech / Axel613
+VidPlayer is now source-available. This means:
+You may view and modify the source code for personal use and to add your own features.
+You must obtain permission from the original creator before:
+Redistributing the source code or compiled binaries (modified or unmodified), or`
+      },
+      pages: [
+        {
+          id: uid(),
+          title: "Welcome",
+          role: "welcome",
+          bg_color: "#151515",
+          bg_image: "",
+          items: [
+            { id: uid(), type:"Label", name:"lblTitle", text:"Welcome to the Setup Wizard for Vidplayer v2.0.9.1", x:24, y:24, w:520, h:36, font_size:13, bold:false, fg:"#ffffff", bg:"" },
+            { id: uid(), type:"Label", name:"lblBody", text:"This Setup Wizard will setup and install Vidplayer onto your computer, Press the next Button to start", x:24, y:74, w:680, h:50, font_size:13, bold:false, fg:"#ffffff", bg:"" }
+          ]
+        },
+        { id: uid(), title: "License Agreement", role:"license", bg_color:"#151515", bg_image:"", items: [] },
+        { id: uid(), title: "Choose Install Location", role:"install_path", bg_color:"#151515", bg_image:"", items: [] },
+        { id: uid(), title: "Installing", role:"installing", bg_color:"#151515", bg_image:"", items: [] },
+        { id: uid(), title: "Finish", role:"finish", bg_color:"#151515", bg_image:"", items: [] }
+      ],
+      history: { undo: [], redo: [] }
+    };
+
+    let state = loadState();
+
+    // ---------- Undo/Redo ----------
+    function pushUndo(snapshot){
+      state.history.undo.push(snapshot);
+      if(state.history.undo.length > 50) state.history.undo.shift();
+      state.history.redo = [];
+      saveState();
+    }
+    function doUndo(){
+      if(!state.history.undo.length) return toast("Nothing to undo.");
+      const prev = state.history.undo.pop();
+      state.history.redo.push(deepCopy(stripHistory(state)));
+      state = withHistory(prev, state.history);
+      saveState();
+      renderAll();
+      toast("Undid.");
+    }
+    function doRedo(){
+      if(!state.history.redo.length) return toast("Nothing to redo.");
+      const next = state.history.redo.pop();
+      state.history.undo.push(deepCopy(stripHistory(state)));
+      state = withHistory(next, state.history);
+      saveState();
+      renderAll();
+      toast("Redid.");
+    }
+    function stripHistory(s){
+      const x = deepCopy(s);
+      x.history = { undo: [], redo: [] };
+      return x;
+    }
+    function withHistory(snap, hist){
+      const x = deepCopy(snap);
+      x.history = hist;
+      return x;
+    }
+
+    // ---------- Persistence ----------
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return initSelect(DEFAULT_STATE);
+        const parsed = JSON.parse(raw);
+        // basic migration safety
+        const merged = Object.assign({}, deepCopy(DEFAULT_STATE), parsed);
+        if(!merged.pages?.length) merged.pages = deepCopy(DEFAULT_STATE.pages);
+        return initSelect(merged);
+      }catch(e){
+        return initSelect(DEFAULT_STATE);
+      }
+    }
+    function initSelect(s){
+      const x = deepCopy(s);
+      if(!x.selected?.pageId) x.selected = { pageId: x.pages[0].id, itemId: null };
+      if(!x.selected.pageId) x.selected.pageId = x.pages[0]?.id || null;
+      return x;
+    }
+    function saveState(){
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+
+    // ---------- DOM refs ----------
+    const els = {
+      menubar: $("menubar"),
+      pagesList: $("pagesList"),
+      pageCount: $("pageCount"),
+
+      appName: $("appName"),
+      appVersion: $("appVersion"),
+      publisher: $("publisher"),
+      installDir: $("installDir"),
+      sourceFolder: $("sourceFolder"),
+      payloadZip: $("payloadZip"),
+      licenseText: $("licenseText"),
+
+      pageTitle: $("pageTitle"),
+      pageRole: $("pageRole"),
+      bgColor: $("bgColor"),
+      bgImage: $("bgImage"),
+      pageBgImage: $("pageBgImage"),
+      showGrid: $("showGrid"),
+      canvas: $("canvas"),
+
+      selType: $("selType"),
+      pType: $("pType"),
+      pName: $("pName"),
+      pText: $("pText"),
+      pX: $("pX"),
+      pY: $("pY"),
+      pW: $("pW"),
+      pH: $("pH"),
+      pFont: $("pFont"),
+      pBold: $("pBold"),
+      pFg: $("pFg"),
+      pBg: $("pBg"),
+      rowChecked: $("rowChecked"),
+      pChecked: $("pChecked"),
+      rowAction: $("rowAction"),
+      pAction: $("pAction"),
+      pUrl: $("pUrl"),
+      rowToggle: $("rowToggle"),
+      pTarget: $("pTarget"),
+
+      codeTitle: $("codeTitle"),
+      code: $("code"),
+      ln: $("ln"),
+
+      ctx: $("ctx"),
+
+      modal: $("modal"),
+      modalTitle: $("modalTitle"),
+      modalBody: $("modalBody"),
+      modalFooter: $("modalFooter"),
+
+      filePick: $("filePick"),
+      colorPick: $("colorPick"),
+
+      toast: $("toast"),
+    };
+
+    // ---------- Helpers ----------
+    function getPage(){
+      return state.pages.find(p=>p.id===state.selected.pageId) || state.pages[0];
+    }
+    function getItem(){
+      const p = getPage();
+      return p?.items.find(i=>i.id===state.selected.itemId) || null;
+    }
+    function setSelected(pageId, itemId){
+      state.selected.pageId = pageId;
+      state.selected.itemId = itemId || null;
+      saveState();
+      renderAll();
+    }
+    function toast(msg){
+      els.toast.textContent = msg;
+      els.toast.style.display = "block";
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=>els.toast.style.display="none", 1400);
+    }
+    function safeHex(s){
+      if(!s) return "";
+      const t = (""+s).trim();
+      if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(t)) return t;
+      return t; // allow empty or non-hex (user may type)
+    }
+    function px(n){ return Math.round(n)+"px"; }
+    function normNum(v, fallback=0){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    // ---------- Rendering ----------
+    function renderAll(){
+      renderProject();
+      renderPages();
+      renderPageControls();
+      renderCanvas();
+      renderProps();
+      renderCode();
+      renderGridToggle();
+    }
+
+    function renderProject(){
+      els.appName.value = state.project.app_name || "";
+      els.appVersion.value = state.project.version || "";
+      els.publisher.value = state.project.publisher || "";
+      els.installDir.value = state.project.default_install_dir || "";
+      els.sourceFolder.value = state.project.source_folder || "";
+      els.payloadZip.value = state.project.payload_zip || "";
+      els.licenseText.value = state.project.license_text || "";
+    }
+
+    function renderPages(){
+      els.pagesList.innerHTML = "";
+      els.pageCount.textContent = String(state.pages.length);
+
+      state.pages.forEach((p, idx)=>{
+        const div = document.createElement("div");
+        div.className = "row" + (p.id===state.selected.pageId ? " active" : "");
+        div.textContent = p.title || ("Page "+(idx+1));
+        div.title = p.role;
+        div.addEventListener("click", ()=>{
+          pushUndo(stripHistory(state));
+          setSelected(p.id, null);
+        });
+        els.pagesList.appendChild(div);
+      });
+    }
+
+    function renderPageControls(){
+      const p = getPage();
+      if(!p) return;
+      els.pageTitle.value = p.title || "";
+      els.pageRole.value = p.role || "custom";
+      els.bgColor.value = p.bg_color || "";
+      els.bgImage.value = p.bg_image || "";
+
+      // Apply page background
+      els.canvas.style.backgroundColor = p.bg_color || "#0f1012";
+      if(p.bg_image){
+        els.pageBgImage.style.display = "block";
+        els.pageBgImage.style.backgroundImage = `url("${p.bg_image}")`;
+      }else{
+        els.pageBgImage.style.display = "none";
+        els.pageBgImage.style.backgroundImage = "";
+      }
+    }
+
+    function renderGridToggle(){
+      els.showGrid.checked = !!state.showGrid;
+      els.canvas.classList.toggle("noGrid", !state.showGrid);
+    }
+
+    function renderCanvas(){
+      const p = getPage();
+      // wipe old widgets (keep bg layer)
+      [...els.canvas.querySelectorAll(".w")].forEach(n=>n.remove());
+
+      if(!p) return;
+
+      // Auto-fill License page with project license text preview (mock)
+      if(p.role === "license" && p.items.length === 0){
+        // non-destructive: just show a ghost preview widget (not stored)
+        const ghost = document.createElement("div");
+        ghost.className = "w label";
+        ghost.style.left = "24px";
+        ghost.style.top = "24px";
+        ghost.style.width = "700px";
+        ghost.style.height = "280px";
+        ghost.style.whiteSpace = "pre-wrap";
+        ghost.style.fontFamily = "var(--mono)";
+        ghost.style.fontSize = "12px";
+        ghost.style.color = "#dfe3ea";
+        ghost.textContent = (state.project.license_text || "").slice(0, 1000);
+        ghost.style.opacity = "0.85";
+        ghost.style.pointerEvents = "none";
+        els.canvas.appendChild(ghost);
+      }
+
+      for(const it of p.items){
+        const w = buildWidgetNode(it);
+        els.canvas.appendChild(w);
+      }
+
+      // clicking empty canvas clears selection
+      els.canvas.addEventListener("mousedown", (e)=>{
+        if(e.target === els.canvas || e.target === els.pageBgImage){
+          pushUndo(stripHistory(state));
+          state.selected.itemId = null;
+          saveState();
+          renderAll();
+        }
+      }, { once:true });
+    }
+
+    function buildWidgetNode(it){
+      const w = document.createElement("div");
+      w.className = "w " + (it.type || "label").toLowerCase();
+      w.dataset.id = it.id;
+      w.style.left = px(it.x||0);
+      w.style.top = px(it.y||0);
+      w.style.width = px(it.w||120);
+      w.style.height = px(it.h||24);
+
+      // style
+      const fs = clamp(normNum(it.font_size, 13), 6, 72);
+      w.style.fontSize = fs+"px";
+      w.style.fontWeight = it.bold ? "700":"400";
+      w.style.color = it.fg || "#ffffff";
+      if(it.bg) w.style.background = it.bg;
+
+      if(it.id === state.selected.itemId){
+        w.classList.add("selected");
+      }
+
+      // content by type
+      if(it.type === "Label"){
+        w.classList.add("label");
+        w.textContent = it.text ?? "";
+      } else if(it.type === "Button"){
+        w.classList.add("button");
+        w.textContent = it.text ?? "Button";
+        if(it.disabled) w.classList.add("disabled");
+        w.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          if(it.disabled) return;
+          // Button action simulation
+          const action = it.action || "none";
+          if(action==="next") goRelative(1);
+          if(action==="back") goRelative(-1);
+          if(action==="close") toast("Close installer (demo).");
+          if(action==="open_url"){
+            if(it.url) window.open(it.url, "_blank", "noopener,noreferrer");
+            else toast("No URL set.");
+          }
+          if(action==="set_path"){
+            const val = prompt("Choose install path (demo):", state.project.default_install_dir || "C:\\MyApp");
+            if(val != null){
+              // find first EditBox on page and set its value
+              const p = getPage();
+              const eb = p.items.find(x=>x.type==="EditBox" && (x.kind==="install_path" || x.name?.toLowerCase().includes("path")));
+              if(eb){
+                pushUndo(stripHistory(state));
+                eb.value = val;
+                saveState();
+                renderAll();
+                toast("Path set.");
+              }else{
+                toast("No EditBox to receive the path.");
+              }
+            }
+          }
+        });
+      } else if(it.type === "CheckBox"){
+        w.classList.add("checkbox");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!it.checked;
+        cb.addEventListener("click",(e)=>e.stopPropagation());
+        cb.addEventListener("change", ()=>{
+          pushUndo(stripHistory(state));
+          it.checked = cb.checked;
+
+          // toggle target enable/disable
+          if(it.target){
+            const p = getPage();
+            const t = p.items.find(x=>x.name === it.target);
+            if(t){
+              t.disabled = !cb.checked;
+            }
+          }
+
+          saveState();
+          renderAll();
+        });
+        const span = document.createElement("div");
+        span.textContent = it.text ?? "Check Box";
+        w.appendChild(cb);
+        w.appendChild(span);
+      } else if(it.type === "Image"){
+        w.classList.add("image");
+        w.textContent = it.text ? it.text : "IMAGE";
+      } else if(it.type === "EditBox"){
+        w.classList.add("editbox");
+        const inp = document.createElement("input");
+        inp.value = it.value ?? (it.kind==="install_path" ? state.project.default_install_dir : "");
+        inp.placeholder = it.placeholder ?? "";
+        inp.addEventListener("mousedown",(e)=>e.stopPropagation());
+        inp.addEventListener("click",(e)=>e.stopPropagation());
+        inp.addEventListener("input", ()=>{
+          pushUndo(stripHistory(state));
+          it.value = inp.value;
+          saveState();
+          renderCode(); // lighter
+        });
+        w.appendChild(inp);
+      }
+
+      // resize handle
+      const rs = document.createElement("div");
+      rs.className = "resize";
+      w.appendChild(rs);
+
+      // select
+      w.addEventListener("mousedown", (e)=>{
+        e.stopPropagation();
+        if(state.selected.itemId !== it.id){
+          pushUndo(stripHistory(state));
+          state.selected.itemId = it.id;
+          saveState();
+          renderAll();
+        }
+      });
+
+      // drag
+      attachDrag(w, it);
+
+      // resize
+      attachResize(w, rs, it);
+
+      return w;
+    }
+
+    function goRelative(delta){
+      const idx = state.pages.findIndex(p=>p.id===state.selected.pageId);
+      const next = clamp(idx + delta, 0, state.pages.length-1);
+      if(next !== idx){
+        pushUndo(stripHistory(state));
+        setSelected(state.pages[next].id, null);
+      }
+    }
+
+    function attachDrag(node, it){
+      let dragging = false;
+      let sx=0, sy=0, ox=0, oy=0;
+
+      node.addEventListener("pointerdown", (e)=>{
+        // don't drag from resize handle
+        if(e.target && e.target.classList && e.target.classList.contains("resize")) return;
+        // don't drag button click: allow drag on empty area only
+        dragging = true;
+        node.setPointerCapture(e.pointerId);
+        sx = e.clientX; sy = e.clientY;
+        ox = it.x || 0; oy = it.y || 0;
+      });
+
+      node.addEventListener("pointermove", (e)=>{
+        if(!dragging) return;
+        const dx = e.clientX - sx;
+        const dy = e.clientY - sy;
+
+        pushUndoOnce("drag");
+
+        it.x = Math.round(ox + dx);
+        it.y = Math.round(oy + dy);
+
+        node.style.left = px(it.x);
+        node.style.top = px(it.y);
+
+        // keep prop panel in sync lightly
+        if(it.id === state.selected.itemId){
+          els.pX.value = it.x;
+          els.pY.value = it.y;
+        }
+      });
+
+      node.addEventListener("pointerup", ()=>{
+        if(!dragging) return;
+        dragging = false;
+        saveState();
+        renderCode();
+      });
+    }
+
+    function attachResize(node, handle, it){
+      let resizing = false;
+      let sx=0, sy=0, ow=0, oh=0;
+
+      handle.addEventListener("pointerdown", (e)=>{
+        e.stopPropagation();
+        resizing = true;
+        handle.setPointerCapture(e.pointerId);
+        sx = e.clientX; sy = e.clientY;
+        ow = it.w || 120; oh = it.h || 24;
+      });
+
+      handle.addEventListener("pointermove", (e)=>{
+        if(!resizing) return;
+        const dx = e.clientX - sx;
+        const dy = e.clientY - sy;
+
+        pushUndoOnce("resize");
+
+        it.w = clamp(Math.round(ow + dx), 24, 2000);
+        it.h = clamp(Math.round(oh + dy), 18, 2000);
+
+        node.style.width = px(it.w);
+        node.style.height = px(it.h);
+
+        if(it.id === state.selected.itemId){
+          els.pW.value = it.w;
+          els.pH.value = it.h;
+        }
+      });
+
+      handle.addEventListener("pointerup", ()=>{
+        if(!resizing) return;
+        resizing = false;
+        saveState();
+        renderCode();
+      });
+    }
+
+    // tiny helper to avoid spamming undo while dragging/resizing
+    let _undoLatch = null;
+    function pushUndoOnce(kind){
+      if(_undoLatch === kind) return;
+      _undoLatch = kind;
+      pushUndo(stripHistory(state));
+      clearTimeout(pushUndoOnce._t);
+      pushUndoOnce._t = setTimeout(()=>_undoLatch=null, 250);
+    }
+
+    function renderProps(){
+      const it = getItem();
+      const p = getPage();
+
+      if(!it){
+        els.selType.textContent = "-";
+        els.pType.value = "-";
+        els.pName.value = "";
+        els.pText.value = "";
+        els.pX.value = 0;
+        els.pY.value = 0;
+        els.pW.value = 10;
+        els.pH.value = 10;
+        els.pFont.value = 10;
+        els.pBold.checked = false;
+        els.pFg.value = "";
+        els.pBg.value = "";
+        els.rowChecked.style.display = "none";
+        els.rowAction.style.display = "none";
+        els.rowToggle.style.display = "none";
+        rebuildTargetList(p, null);
+        return;
+      }
+
+      els.selType.textContent = it.type || "-";
+      els.pType.value = it.type || "-";
+      els.pName.value = it.name || "";
+      els.pText.value = it.text ?? "";
+      els.pX.value = normNum(it.x, 0);
+      els.pY.value = normNum(it.y, 0);
+      els.pW.value = normNum(it.w, 120);
+      els.pH.value = normNum(it.h, 24);
+      els.pFont.value = clamp(normNum(it.font_size, 13), 6, 72);
+      els.pBold.checked = !!it.bold;
+      els.pFg.value = it.fg || "";
+      els.pBg.value = it.bg || "";
+
+      els.rowChecked.style.display = (it.type==="CheckBox") ? "flex" : "none";
+      if(it.type==="CheckBox"){
+        els.pChecked.checked = !!it.checked;
+      }
+
+      els.rowAction.style.display = (it.type==="Button") ? "block" : "none";
+      if(it.type==="Button"){
+        els.pAction.value = it.action || "none";
+        els.pUrl.value = it.url || "";
+      }
+
+      els.rowToggle.style.display = (it.type==="CheckBox") ? "block" : "none";
+      rebuildTargetList(p, it);
+    }
+
+    function rebuildTargetList(page, checkboxItem){
+      els.pTarget.innerHTML = `<option value="">CheckBox toggles: (select target)</option>`;
+      if(!page) return;
+      for(const w of page.items){
+        if(w.type==="CheckBox") continue;
+        if(!w.name) continue;
+        const opt = document.createElement("option");
+        opt.value = w.name;
+        opt.textContent = w.name + " (" + w.type + ")";
+        els.pTarget.appendChild(opt);
+      }
+      if(checkboxItem && checkboxItem.type==="CheckBox"){
+        els.pTarget.value = checkboxItem.target || "";
+      }
+    }
+
+    // ---------- Code generation ----------
+    function projectToJSON(){
+      // produce a stable-ish structure similar to what your generator might keep
+      const out = {
+        app_name: state.project.app_name,
+        version: state.project.version,
+        publisher: state.project.publisher,
+        default_install_dir: state.project.default_install_dir,
+        source_folder: state.project.source_folder,
+        payload_zip: state.project.payload_zip,
+        license_text: state.project.license_text,
+        pages: state.pages.map(p=>({
+          title: p.title,
+          role: p.role,
+          bg_color: p.bg_color,
+          bg_image: p.bg_image,
+          items: p.items.map(i=>({
+            type: i.type,
+            name: i.name,
+            text: i.text,
+            x: i.x, y: i.y, w: i.w, h: i.h,
+            extra: {
+              font_size: i.font_size,
+              bold: !!i.bold,
+              fg: i.fg,
+              bg: i.bg,
+              checked: i.checked,
+              action: i.action,
+              url: i.url,
+              target: i.target,
+              value: i.value,
+              placeholder: i.placeholder,
+              kind: i.kind
+            }
+          }))
+        }))
+      };
+      return out;
+    }
+
+    function toPythonLike(obj){
+      // pretty-print into a Python-ish dict literal
+      function fmt(v, depth=0){
+        const pad = "  ".repeat(depth);
+        if(v === null) return "None";
+        if(typeof v === "boolean") return v ? "True":"False";
+        if(typeof v === "number") return String(v);
+        if(typeof v === "string"){
+          // simple escape
+          const s = v.replace(/\\/g,"\\\\").replace(/"/g,'\\"');
+          return `"${s}"`;
+        }
+        if(Array.isArray(v)){
+          if(v.length===0) return "[]";
+          const inner = v.map(x=>pad+"  "+fmt(x, depth+1)).join(",\n");
+          return "[\n"+inner+"\n"+pad+"]";
+        }
+        if(typeof v === "object"){
+          const keys = Object.keys(v);
+          if(keys.length===0) return "{}";
+          const inner = keys.map(k=>{
+            return pad+"  "+fmt(k,0)+": "+fmt(v[k], depth+1);
+          }).join(",\n");
+          return "{\n"+inner+"\n"+pad+"}";
+        }
+        return "None";
+      }
+
+      const header =
+`# Auto-generated by Roxzned Setup Designer (Web Demo)
+# This is a demo of the real-time code generation concept.
+# Requires: PySide6 (in the desktop app), PyInstaller build step (in the desktop app)
+
+import os
+import json
+import zipfile
+import traceback
+
+PROJECT = `;
+      return header + fmt(obj,0) + "\n";
+    }
+
+    function renderCode(){
+      const obj = projectToJSON();
+      let txt = "";
+      if(state.codeMode === "python"){
+        txt = toPythonLike(obj);
+        els.codeTitle.textContent = "Auto-generated Code (Python)";
+      }else{
+        txt = JSON.stringify(obj, null, 2);
+        els.codeTitle.textContent = "Auto-generated Code (JSON)";
+      }
+      els.code.textContent = txt;
+
+      // line numbers
+      const lines = txt.split("\n").length;
+      els.ln.innerHTML = "";
+      for(let i=1;i<=lines;i++){
+        const d = document.createElement("div");
+        d.textContent = i;
+        els.ln.appendChild(d);
+      }
+    }
+
+    // ---------- Events: project fields ----------
+    function bindProject(){
+      const bind = (el, path)=>{
+        el.addEventListener("input", ()=>{
+          pushUndo(stripHistory(state));
+          state.project[path] = el.value;
+          saveState();
+          // update title label content in welcome page if it matches
+          autoUpdateWelcomeText();
+          renderAll();
+        });
+      };
+      bind(els.appName, "app_name");
+      bind(els.appVersion, "version");
+      bind(els.publisher, "publisher");
+      bind(els.installDir, "default_install_dir");
+      bind(els.sourceFolder, "source_folder");
+      bind(els.payloadZip, "payload_zip");
+      bind(els.licenseText, "license_text");
+
+      $("browseSource").addEventListener("click", ()=>pickFile((name)=>{
+        pushUndo(stripHistory(state));
+        els.sourceFolder.value = name;
+        state.project.source_folder = name;
+        saveState();
+        renderAll();
+      }, { accept:"*/*" }));
+
+      $("browsePayload").addEventListener("click", ()=>pickFile((name)=>{
+        pushUndo(stripHistory(state));
+        els.payloadZip.value = name;
+        state.project.payload_zip = name;
+        saveState();
+        renderAll();
+      }, { accept:".zip,application/zip" }));
+    }
+
+    function autoUpdateWelcomeText(){
+      const p = state.pages.find(x=>x.role==="welcome");
+      if(!p) return;
+      const t = p.items.find(i=>i.name==="lblTitle" && i.type==="Label");
+      if(t){
+        const v = (state.project.version || "").trim();
+        const n = (state.project.app_name || "").trim();
+        t.text = `Welcome to the Setup Wizard for ${n || "Your App"} v${v || "1.0.0"}`;
+      }
+    }
+
+    // ---------- Events: pages ----------
+    function bindPages(){
+      $("pgAdd").addEventListener("click", ()=>{
+        pushUndo(stripHistory(state));
+        state.pages.push({
+          id: uid(),
+          title: "New Page",
+          role: "custom",
+          bg_color: "#151515",
+          bg_image: "",
+          items: []
+        });
+        setSelected(state.pages[state.pages.length-1].id, null);
+        toast("Page added.");
+      });
+
+      $("pgDup").addEventListener("click", ()=>{
+        const idx = state.pages.findIndex(p=>p.id===state.selected.pageId);
+        if(idx<0) return;
+        pushUndo(stripHistory(state));
+        const copy = deepCopy(state.pages[idx]);
+        copy.id = uid();
+        copy.title = (copy.title || "Page") + " (copy)";
+        copy.items.forEach(i=>i.id = uid());
+        state.pages.splice(idx+1,0,copy);
+        setSelected(copy.id, null);
+        toast("Page duplicated.");
+      });
+
+      $("pgDel").addEventListener("click", ()=>{
+        if(state.pages.length<=1) return toast("You must keep at least one page.");
+        const idx = state.pages.findIndex(p=>p.id===state.selected.pageId);
+        if(idx<0) return;
+        pushUndo(stripHistory(state));
+        state.pages.splice(idx,1);
+        const next = state.pages[Math.max(0, idx-1)];
+        setSelected(next.id, null);
+        toast("Page deleted.");
+      });
+
+      $("pgUp").addEventListener("click", ()=>{
+        const idx = state.pages.findIndex(p=>p.id===state.selected.pageId);
+        if(idx<=0) return;
+        pushUndo(stripHistory(state));
+        const [p] = state.pages.splice(idx,1);
+        state.pages.splice(idx-1,0,p);
+        saveState();
+        renderAll();
+      });
+
+      $("pgDown").addEventListener("click", ()=>{
+        const idx = state.pages.findIndex(p=>p.id===state.selected.pageId);
+        if(idx<0 || idx>=state.pages.length-1) return;
+        pushUndo(stripHistory(state));
+        const [p] = state.pages.splice(idx,1);
+        state.pages.splice(idx+1,0,p);
+        saveState();
+        renderAll();
+      });
+
+      // page fields
+      els.pageTitle.addEventListener("input", ()=>{
+        const p = getPage(); if(!p) return;
+        pushUndo(stripHistory(state));
+        p.title = els.pageTitle.value;
+        saveState();
+        renderPages();
+        renderCode();
+      });
+
+      els.pageRole.addEventListener("change", ()=>{
+        const p = getPage(); if(!p) return;
+        pushUndo(stripHistory(state));
+        p.role = els.pageRole.value;
+        saveState();
+        renderAll();
+      });
+
+      els.bgColor.addEventListener("input", ()=>{
+        const p = getPage(); if(!p) return;
+        pushUndo(stripHistory(state));
+        p.bg_color = safeHex(els.bgColor.value);
+        saveState();
+        renderAll();
+      });
+
+      els.bgImage.addEventListener("input", ()=>{
+        const p = getPage(); if(!p) return;
+        pushUndo(stripHistory(state));
+        p.bg_image = els.bgImage.value;
+        saveState();
+        renderAll();
+      });
+
+      $("browseBg").addEventListener("click", ()=>pickFile((name)=>{
+        const p = getPage(); if(!p) return;
+        pushUndo(stripHistory(state));
+        p.bg_image = name;
+        els.bgImage.value = name;
+        saveState();
+        renderAll();
+      }, { accept:"image/*" }));
+
+      $("pickBg").addEventListener("click", ()=>{
+        const p = getPage(); if(!p) return;
+        pickColor(p.bg_color || "#151515", (hex)=>{
+          pushUndo(stripHistory(state));
+          p.bg_color = hex;
+          els.bgColor.value = hex;
+          saveState();
+          renderAll();
+        });
+      });
+
+      els.showGrid.addEventListener("change", ()=>{
+        pushUndo(stripHistory(state));
+        state.showGrid = els.showGrid.checked;
+        saveState();
+        renderGridToggle();
+      });
+    }
+
+    // ---------- Events: properties ----------
+    function bindProps(){
+      const apply = (fn)=>{
+        const it = getItem();
+        if(!it) return;
+        pushUndo(stripHistory(state));
+        fn(it);
+        saveState();
+        renderAll();
+      };
+
+      els.pName.addEventListener("input", ()=>apply(it=>it.name = els.pName.value));
+      els.pText.addEventListener("input", ()=>apply(it=>it.text = els.pText.value));
+      els.pX.addEventListener("input", ()=>apply(it=>it.x = normNum(els.pX.value,0)));
+      els.pY.addEventListener("input", ()=>apply(it=>it.y = normNum(els.pY.value,0)));
+      els.pW.addEventListener("input", ()=>apply(it=>it.w = clamp(normNum(els.pW.value,120), 24, 2000)));
+      els.pH.addEventListener("input", ()=>apply(it=>it.h = clamp(normNum(els.pH.value,24), 18, 2000)));
+      els.pFont.addEventListener("input", ()=>apply(it=>it.font_size = clamp(normNum(els.pFont.value,13), 6, 72)));
+      els.pBold.addEventListener("change", ()=>apply(it=>it.bold = els.pBold.checked));
+      els.pFg.addEventListener("input", ()=>apply(it=>it.fg = safeHex(els.pFg.value)));
+      els.pBg.addEventListener("input", ()=>apply(it=>it.bg = safeHex(els.pBg.value)));
+
+      $("pickFg").addEventListener("click", ()=>{
+        const it = getItem(); if(!it) return;
+        pickColor(it.fg || "#ffffff", (hex)=>{
+          pushUndo(stripHistory(state));
+          it.fg = hex;
+          saveState();
+          renderAll();
+        });
+      });
+
+      $("pickBg2").addEventListener("click", ()=>{
+        const it = getItem(); if(!it) return;
+        pickColor(it.bg || "#151515", (hex)=>{
+          pushUndo(stripHistory(state));
+          it.bg = hex;
+          saveState();
+          renderAll();
+        });
+      });
+
+      els.pChecked.addEventListener("change", ()=>{
+        const it = getItem();
+        if(!it || it.type!=="CheckBox") return;
+        pushUndo(stripHistory(state));
+        it.checked = els.pChecked.checked;
+        saveState();
+        renderAll();
+      });
+
+      els.pAction.addEventListener("change", ()=>{
+        const it = getItem();
+        if(!it || it.type!=="Button") return;
+        pushUndo(stripHistory(state));
+        it.action = els.pAction.value;
+        saveState();
+        renderAll();
+      });
+
+      els.pUrl.addEventListener("input", ()=>{
+        const it = getItem();
+        if(!it || it.type!=="Button") return;
+        pushUndo(stripHistory(state));
+        it.url = els.pUrl.value;
+        saveState();
+        renderCode();
+      });
+
+      els.pTarget.addEventListener("change", ()=>{
+        const it = getItem();
+        if(!it || it.type!=="CheckBox") return;
+        pushUndo(stripHistory(state));
+        it.target = els.pTarget.value;
+        saveState();
+        renderAll();
+      });
+    }
+
+    // ---------- Context menu ----------
+    function bind
